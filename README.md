@@ -23,6 +23,5 @@ Setup
    pip install -r requirements.txt
 
 3. Configure MySQL Database
-   Create a database named indeed_jobs.
-
+   
    Update the connect_to_database function in the Python script with your MySQL credentials.
