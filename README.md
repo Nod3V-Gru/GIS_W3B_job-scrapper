@@ -13,13 +13,14 @@ beautifulsoup4==4.12.0
 mysql-connector-python==8.0.33
 Setup
 1. Clone the repository
-git clone https://github.com/yourusername/WebScraper-To-Database-mysql.git cd WebScraperDatabase
+git clone https://github.com/Nod3V-Gru/GIS_W3B_job-scrapper
 
 2. Install Dependencies
 Install the required Python packages using the command below:
 
 pip install -r requirements.txt
+
 3. Configure MySQL Database
-Create a database named testscarping.
+Create a database named indeed_jobs.
+
 Update the connect_to_database function in the Python script with your MySQL credentials.
-Usage
