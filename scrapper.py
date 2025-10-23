@@ -4,12 +4,13 @@ import time
 import mysql.connector
 from datetime import datetime
 import re
+import urllib.parse
 
 # Database configuration
 DB_CONFIG = {
     'host': 'localhost',
-    'user': 'root',
-    'password': 'pass',
+    'user': 'your_username',
+    'password': 'your_password',
     'database': 'indeed_jobs'
 }
 
@@ -162,6 +163,18 @@ def parse_date(date_text):
     
     return None
 
+def format_company_name_for_url(company_name):
+    """Format company name for Indeed company page URL"""
+    if not company_name:
+        return ""
+    
+    # Remove common suffixes and special characters
+    company_name = re.sub(r'[^\w\s-]', '', company_name)
+    company_name = re.sub(r'\s+', '-', company_name.strip())
+    company_name = company_name.lower()
+    
+    return company_name
+
 def scrape_indeed(playwright):
     browser = playwright.chromium.launch_persistent_context(
         user_data_dir="C:\\playwright",
@@ -177,7 +190,7 @@ def scrape_indeed(playwright):
     # Create database tables
     create_database()
 
-    while page_count < 2000:  # Adjust as needed
+    while page_count < 2:  # Adjust as needed
         print(f"SCRAPING PAGE {page_count + 1}")
         
         # Use the provided search link for first page, paginate for subsequent pages
@@ -206,7 +219,7 @@ def scrape_indeed(playwright):
                 else:
                     continue
                 
-                # Get company name
+                # Get company name from search results page (previous page)
                 company_element = job_card.locator('[data-testid="company-name"], .companyName')
                 if company_element.count() > 0:
                     job_data['company_name'] = company_element.inner_text().strip()
@@ -254,37 +267,50 @@ def scrape_indeed(playwright):
                 except:
                     pass
                 
-                # Try to navigate to company page for more posts
+                # Try to navigate to company page for more posts using company name from search results
                 company_posts = []
                 try:
-                    company_link = page.locator('[data-testid="inlineHeader-companyName"] a, .companyOverviewLink')
-                    if company_link.count() > 0:
-                        company_url = company_link.get_attribute('href')
-                        if company_url and 'cmp' in company_url:
-                            print("NAVIGATING TO COMPANY PAGE")
-                            page.goto("https://www.indeed.com" + company_url)
+                    if job_data['company_name']:
+                        # Format company name for URL
+                        formatted_company_name = format_company_name_for_url(job_data['company_name'])
+                        if formatted_company_name:
+                            company_url = f"https://www.indeed.com/cmp/{formatted_company_name}"
+                            print(f"NAVIGATING TO COMPANY PAGE: {company_url}")
+                            page.goto(company_url)
                             time.sleep(3)
                             
-                            # Scrape recent company posts
-                            recent_posts = page.locator('.job, .jobCard')
-                            for j in range(min(50, recent_posts.count())):  # Get up to 5 recent posts
-                                post = recent_posts.nth(j)
-                                post_data = {}
-                                
-                                post_title = post.locator('h2 a, .jobTitle a')
-                                if post_title.count() > 0:
-                                    post_data['post_title'] = post_title.inner_text().strip()
-                                    post_data['post_url'] = "https://www.indeed.com" + post_title.get_attribute('href')
-                                    post_data['company_name'] = job_data['company_name']
+                            # Check if we're on a valid company page
+                            if "company" in page.url or "cmp" in page.url:
+                                # Scrape recent company posts
+                                recent_posts = page.locator('.job, .jobCard, [data-testid="jobCard"]')
+                                for j in range(min(5, recent_posts.count())):  # Get up to 5 recent posts
+                                    post = recent_posts.nth(j)
+                                    post_data = {}
                                     
-                                    post_date = post.locator('.date, .datePosted')
-                                    if post_date.count() > 0:
-                                        date_text = post_date.inner_text().strip()
-                                        post_data['post_date'] = parse_date(date_text)
-                                    else:
-                                        post_data['post_date'] = None
-                                    
-                                    company_posts.append(post_data)
+                                    post_title = post.locator('h2 a, .jobTitle a, [data-testid="jobTitle"]')
+                                    if post_title.count() > 0:
+                                        post_data['post_title'] = post_title.inner_text().strip()
+                                        post_url = post_title.get_attribute('href')
+                                        if post_url:
+                                            if post_url.startswith('/'):
+                                                post_data['post_url'] = "https://www.indeed.com" + post_url
+                                            else:
+                                                post_data['post_url'] = post_url
+                                        else:
+                                            post_data['post_url'] = ""
+                                        
+                                        post_data['company_name'] = job_data['company_name']
+                                        
+                                        post_date = post.locator('.date, .datePosted, [data-testid="myJobsStateDate"]')
+                                        if post_date.count() > 0:
+                                            date_text = post_date.inner_text().strip()
+                                            post_data['post_date'] = parse_date(date_text)
+                                        else:
+                                            post_data['post_date'] = None
+                                        
+                                        company_posts.append(post_data)
+                            else:
+                                print(f"Invalid company page for: {job_data['company_name']}")
                 except Exception as e:
                     print(f"Error scraping company page: {e}")
                 
@@ -301,7 +327,14 @@ def scrape_indeed(playwright):
                         for j in range(min(5, related_links.count())):
                             related_job = {}
                             related_job['title'] = related_links.nth(j).inner_text().strip()
-                            related_job['url'] = "https://www.indeed.com" + related_links.nth(j).get_attribute('href')
+                            related_url = related_links.nth(j).get_attribute('href')
+                            if related_url:
+                                if related_url.startswith('/'):
+                                    related_job['url'] = "https://www.indeed.com" + related_url
+                                else:
+                                    related_job['url'] = related_url
+                            else:
+                                related_job['url'] = ""
                             related_job['company'] = job_data['company_name']
                             related_job['location'] = job_data['location']
                             related_jobs.append(related_job)
