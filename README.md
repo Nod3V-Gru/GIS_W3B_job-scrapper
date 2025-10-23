@@ -5,11 +5,15 @@ Multi-website scraping: Supports multiple service providers like LikesOutlet, Go
 MySQL Integration: Stores scraped data in a structured MySQL database for analysis and usage.
 CSV Export: Combines and exports scraped data to CSV format.
 
-Prerequisites
+Prerequisites:
 Python 3.7 or higher
+
 pandas 2.3 or higher
+
 openpyxl 3.1 or higher
+
 mysql-connector-python==8.0.33
+
 
 Setup
 1. Clone the repository
@@ -18,7 +22,7 @@ Setup
 2. Install Dependencies
    Install the required Python packages using the command below:
 
-pip install -r requirements.txt
+   pip install -r requirements.txt
 
 3. Configure MySQL Database
    Create a database named indeed_jobs.
