@@ -7,9 +7,9 @@ CSV Export: Combines and exports scraped data to CSV format.
 
 Prerequisites:
 
-Python 3.7 or higher
-pandas 2.3 or higher
-openpyxl 3.1 or higher
+Python 3.7 or higher,
+pandas 2.3 or higher,
+openpyxl 3.1 or higher,
 mysql-connector-python==8.0.33
 
 
