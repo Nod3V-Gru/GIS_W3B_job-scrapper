@@ -7,20 +7,20 @@ CSV Export: Combines and exports scraped data to CSV format.
 
 Prerequisites
 Python 3.7 or higher
-MySQL Server
-requests==2.28.2
-beautifulsoup4==4.12.0
+pandas 2.3 or higher
+openpyxl 3.1 or higher
 mysql-connector-python==8.0.33
+
 Setup
 1. Clone the repository
-git clone https://github.com/Nod3V-Gru/GIS_W3B_job-scrapper
+   git clone https://github.com/Nod3V-Gru/GIS_W3B_job-scrapper
 
 2. Install Dependencies
-Install the required Python packages using the command below:
+   Install the required Python packages using the command below:
 
 pip install -r requirements.txt
 
 3. Configure MySQL Database
-Create a database named indeed_jobs.
+   Create a database named indeed_jobs.
 
-Update the connect_to_database function in the Python script with your MySQL credentials.
+   Update the connect_to_database function in the Python script with your MySQL credentials.
