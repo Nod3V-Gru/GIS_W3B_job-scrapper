@@ -9,7 +9,7 @@ import re
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'Deablow17!',
+    'password': 'pass',
     'database': 'indeed_jobs'
 }
 
